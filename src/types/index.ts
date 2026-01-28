@@ -3,12 +3,14 @@ export type UserRole = 'Admin' | 'HR' | 'Employee';
 export interface User {
   id: string;
   name: string;
+  email: string;
   role: UserRole;
   department?: string;
   phoneNumber?: string;
   birthday?: string;
   avatar?: string;
   created_at?: string;
+  auth_user_id?: string;
 }
 
 export interface AttendanceRecord {

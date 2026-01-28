@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/lib/supabase';
-import { User, LeaveRequest, OvertimeRequest, AttendanceRecord, BreakSchedule } from '@/types';
+import { User, UserRole, LeaveRequest, OvertimeRequest, AttendanceRecord, BreakSchedule } from '@/types';
 import { 
   Users, 
   Clock, 
@@ -20,8 +20,10 @@ import {
   Star,
   Home,
   Building,
-  Save,
-  Loader2
+  UserPlus,
+  Loader2,
+  Mail,
+  Trash2
 } from 'lucide-react';
 
 interface ManagementProps {
@@ -40,6 +42,7 @@ export const Management: React.FC<ManagementProps> = ({
   onRefresh 
 }) => {
   const [employees, setEmployees] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [liveAttendance, setLiveAttendance] = useState<AttendanceRecord[]>([]);
   const [breakSchedules, setBreakSchedules] = useState<BreakSchedule[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
@@ -53,8 +56,18 @@ export const Management: React.FC<ManagementProps> = ({
   });
   const [loading, setLoading] = useState(false);
 
+  // New user creation state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('Employee');
+  const [newUserDepartment, setNewUserDepartment] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState('');
+
   useEffect(() => {
     fetchEmployees();
+    fetchAllUsers();
     fetchLiveAttendance();
     fetchBreakSchedules();
   }, []);
@@ -65,6 +78,14 @@ export const Management: React.FC<ManagementProps> = ({
       .select('*')
       .eq('role', 'Employee');
     if (data) setEmployees(data as User[]);
+  };
+
+  const fetchAllUsers = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) setAllUsers(data as User[]);
   };
 
   const fetchLiveAttendance = async () => {
@@ -142,6 +163,72 @@ export const Management: React.FC<ManagementProps> = ({
       setLoading(false);
     }
   };
+
+  // Create new user account
+  const handleCreateUser = async () => {
+    if (!newUserName.trim() || !newUserEmail.trim()) {
+      setCreateError('Name and email are required');
+      return;
+    }
+
+    // Validate email domain for employees
+    if (newUserRole === 'Employee' && !newUserEmail.endsWith('@hztech.biz')) {
+      setCreateError('Employee emails must be @hztech.biz');
+      return;
+    }
+
+    setCreateLoading(true);
+    setCreateError('');
+
+    try {
+      // Check if email already exists
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', newUserEmail)
+        .maybeSingle();
+
+      if (existing) {
+        setCreateError('An account with this email already exists');
+        setCreateLoading(false);
+        return;
+      }
+
+      // Create profile
+      const { error } = await supabase.from('profiles').insert({
+        name: newUserName,
+        email: newUserEmail,
+        role: newUserRole,
+        department: newUserDepartment,
+      });
+
+      if (error) throw error;
+
+      // Reset form
+      setNewUserName('');
+      setNewUserEmail('');
+      setNewUserRole('Employee');
+      setNewUserDepartment('');
+      setCreateDialogOpen(false);
+      
+      // Refresh lists
+      fetchEmployees();
+      fetchAllUsers();
+    } catch (err: any) {
+      setCreateError(err.message || 'Failed to create account');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  // Delete user
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    await supabase.from('profiles').delete().eq('id', userId);
+    fetchEmployees();
+    fetchAllUsers();
+  }
 
   const pendingLeaves = leaveRequests.filter(r => r.status === 'Pending');
   const pendingOvertime = overtimeRequests.filter(r => r.status === 'Pending');
@@ -251,24 +338,146 @@ export const Management: React.FC<ManagementProps> = ({
   if (view === 'employees') {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">All Employees</h1>
-          <p className="text-muted-foreground">Manage your team</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">User Management</h1>
+            <p className="text-muted-foreground">Create and manage employee accounts</p>
+          </div>
+          
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Create Account
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Account</DialogTitle>
+                <DialogDescription>
+                  Add a new employee or HR user. They will log in using their @hztech.biz Google account.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newName">Full Name</Label>
+                  <Input
+                    id="newName"
+                    placeholder="John Doe"
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newEmail">Email Address</Label>
+                  <Input
+                    id="newEmail"
+                    type="email"
+                    placeholder="john@hztech.biz"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Employees must use @hztech.biz email addresses
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as UserRole)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Employee">Employee</SelectItem>
+                      <SelectItem value="HR">HR</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newDept">Department</Label>
+                  <Input
+                    id="newDept"
+                    placeholder="Engineering, Marketing, etc."
+                    value={newUserDepartment}
+                    onChange={(e) => setNewUserDepartment(e.target.value)}
+                  />
+                </div>
+
+                {createError && (
+                  <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+                    {createError}
+                  </p>
+                )}
+
+                <Button 
+                  onClick={handleCreateUser} 
+                  disabled={createLoading}
+                  className="w-full"
+                >
+                  {createLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Create Account
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Card>
-          <CardContent className="pt-6">
-            {employees.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No employees found</p>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              All Users ({allUsers.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {allUsers.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No users found</p>
             ) : (
               <div className="space-y-3">
-                {employees.map((emp) => (
-                  <div key={emp.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{emp.name}</p>
-                      <p className="text-sm text-muted-foreground">{emp.department || 'No department'}</p>
+                {allUsers.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{user.name}</p>
+                        <Badge variant={user.role === 'Admin' ? 'default' : user.role === 'HR' ? 'secondary' : 'outline'}>
+                          {user.role}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 mt-1">
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="w-3 h-3" />
+                          {user.email || 'No email'}
+                        </p>
+                        {user.department && (
+                          <p className="text-sm text-muted-foreground">
+                            {user.department}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <Badge>{emp.role}</Badge>
+                    {user.role !== 'Admin' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -522,7 +731,7 @@ export const Management: React.FC<ManagementProps> = ({
                 </div>
 
                 <Button onClick={handlePerformanceSubmit} disabled={loading} className="w-full">
-                  {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
                   Submit Review
                 </Button>
               </>
