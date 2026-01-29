@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable';
 import { User, UserRole } from '@/types';
 import { LogIn, Building2, AlertCircle } from 'lucide-react';
 
@@ -101,17 +102,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-          queryParams: {
-            hd: 'hztech.biz', // Restrict to hztech.biz domain
-          },
-        },
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
       });
 
-      if (error) throw error;
+      if (result.error) {
+        throw result.error;
+      }
+      
+      // If redirected, the page will reload and onAuthStateChange will handle it
+      if (!result.redirected) {
+        // Session was set, the auth state change listener will handle the rest
+        setLoading(false);
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed');
       setLoading(false);
