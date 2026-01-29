@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User, AttendanceRecord } from '@/types';
 import { Calendar, Clock, TrendingUp, Home, Building } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';

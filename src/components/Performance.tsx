@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User, PerformanceReview } from '@/types';
 import { Star, TrendingUp, Award, BarChart3 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';

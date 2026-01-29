@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Toaster } from '@/components/ui/toaster';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User, AttendanceRecord, LeaveRequest, OvertimeRequest, BreakSchedule } from '@/types';
 import Login from '@/components/Login';
 import Dashboard from '@/components/Dashboard';
