@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { User, UserRole } from '@/types';
 import { LogIn, Building2, AlertCircle } from 'lucide-react';
-
+import { ThemeToggle } from './ThemeToggle';
 interface LoginProps {
   onLogin: (user: User) => void;
 }
@@ -177,22 +177,27 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-2">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
+      <Card className="w-full max-w-md shadow-lg border bg-card">
+        <CardHeader className="text-center space-y-3 pb-2">
+          <div className="mx-auto w-14 h-14 bg-primary rounded-xl flex items-center justify-center">
+            <Building2 className="w-7 h-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">Employee Portal</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Employee Portal</CardTitle>
+          <CardDescription className="text-muted-foreground">
             Sign in with your @hztech.biz Google account
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 pt-2">
           {error && (
-            <div className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg">
+            <div className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p className="text-sm">{error}</p>
+              <p className="text-sm font-medium">{error}</p>
             </div>
           )}
 
@@ -200,11 +205,14 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <>
               <Button
                 onClick={handleGoogleLogin}
-                className="w-full h-12"
+                className="w-full h-11 font-medium"
                 disabled={loading}
               >
                 {loading ? (
-                  'Connecting...'
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Connecting...
+                  </span>
                 ) : (
                   <>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

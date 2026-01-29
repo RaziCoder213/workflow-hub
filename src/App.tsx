@@ -24,6 +24,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -359,15 +360,18 @@ const App: React.FC = () => {
         {/* Header */}
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">Employee Portal</h1>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden text-sidebar-foreground"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="w-5 h-5" />
-            </Button>
+            <h1 className="text-lg font-semibold">Employee Portal</h1>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden text-sidebar-foreground h-9 w-9"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
           <p className="text-sm text-sidebar-foreground/70 mt-1">
             {user.name} • {user.role}
@@ -414,15 +418,19 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 min-h-screen">
         {/* Mobile Header */}
-        <header className="lg:hidden sticky top-0 z-30 bg-card border-b p-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          <h1 className="font-semibold">Employee Portal</h1>
+        <header className="lg:hidden sticky top-0 z-30 bg-card border-b border-border p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(true)}
+              className="h-9 w-9"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            <h1 className="font-semibold">Employee Portal</h1>
+          </div>
+          <ThemeToggle />
         </header>
 
         {/* Content */}
