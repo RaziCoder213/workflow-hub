@@ -7,6 +7,14 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { User, AttendanceRecord, BreakSchedule } from '@/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Clock, 
   LogIn, 
@@ -17,7 +25,8 @@ import {
   Timer,
   TrendingUp,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -43,9 +52,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [isWFH, setIsWFH] = useState(false);
   const [todayRecords, setTodayRecords] = useState<AttendanceRecord[]>([]);
+  const [showIdleWarning, setShowIdleWarning] = useState(false);
 
   const REQUIRED_SECONDS = 8 * 60 * 60; // 8 hours
   const IDLE_LIMIT = 15 * 60; // 15 minutes
+  const IDLE_WARNING_THRESHOLD = 13 * 60; // 13 minutes - show warning
   const progressPercent = Math.min((todayTotalSeconds / REQUIRED_SECONDS) * 100, 100);
   const remainingSeconds = Math.max(REQUIRED_SECONDS - todayTotalSeconds, 0);
   const idleRemaining = IDLE_LIMIT - idleSeconds;
@@ -80,11 +91,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
     fetchTodayRecords();
   }, [user.id, currentSession]);
 
+  // Show idle warning when idle time reaches 13 minutes
+  useEffect(() => {
+    if (currentSession && idleSeconds >= IDLE_WARNING_THRESHOLD && idleSeconds < IDLE_LIMIT) {
+      setShowIdleWarning(true);
+    } else if (!currentSession || idleSeconds < IDLE_WARNING_THRESHOLD) {
+      setShowIdleWarning(false);
+    }
+  }, [idleSeconds, currentSession, IDLE_WARNING_THRESHOLD, IDLE_LIMIT]);
+
+  const handleDismissWarning = () => {
+    setShowIdleWarning(false);
+  };
+
   const breakStart = breakSchedule?.start_hour ?? 15;
   const breakEnd = breakSchedule?.end_hour ?? 16;
 
   return (
     <div className="space-y-6">
+      {/* Idle Warning Dialog */}
+      <Dialog open={showIdleWarning} onOpenChange={setShowIdleWarning}>
+        <DialogContent className="sm:max-w-md border-destructive">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5 animate-pulse" />
+              Idle Warning!
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              You have been inactive for <span className="font-bold text-destructive">{Math.floor(idleSeconds / 60)} minutes</span>.
+              You will be automatically checked out in <span className="font-bold text-destructive">{formatTime(idleRemaining)}</span> if no activity is detected.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-4">
+            <div className="text-center">
+              <div className="text-4xl font-bold font-mono text-destructive animate-pulse">
+                {formatTime(idleRemaining)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">Time until auto-checkout</p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleDismissWarning}>
+              I'm still here
+            </Button>
+            <Button variant="destructive" onClick={onCheckOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Check Out Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
