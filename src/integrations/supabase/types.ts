@@ -79,6 +79,47 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_draws: {
+        Row: {
+          created_at: string | null
+          draw_date: string
+          id: string
+          is_claimed: boolean | null
+          is_winner: boolean | null
+          reward_id: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          draw_date?: string
+          id?: string
+          is_claimed?: boolean | null
+          is_winner?: boolean | null
+          reward_id?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string | null
+          draw_date?: string
+          id?: string
+          is_claimed?: boolean | null
+          is_winner?: boolean | null
+          reward_id?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_draws_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "reward_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaves: {
         Row: {
           created_at: string | null
@@ -253,6 +294,74 @@ export type Database = {
           name?: string
           phoneNumber?: string | null
           role?: string | null
+        }
+        Relationships: []
+      }
+      reward_claims: {
+        Row: {
+          claim_date: string
+          created_at: string | null
+          id: string
+          reward_id: string
+          reward_name: string
+          reward_type: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          claim_date?: string
+          created_at?: string | null
+          id?: string
+          reward_id: string
+          reward_name: string
+          reward_type?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          claim_date?: string
+          created_at?: string | null
+          id?: string
+          reward_id?: string
+          reward_name?: string
+          reward_type?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_claims_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "reward_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
         }
         Relationships: []
       }
