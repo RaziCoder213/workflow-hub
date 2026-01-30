@@ -10,6 +10,7 @@ import AttendanceReport from '@/components/AttendanceReport';
 import Profile from '@/components/Profile';
 import Performance from '@/components/Performance';
 import Management from '@/components/Management';
+import Rewards from '@/components/Rewards';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -22,7 +23,8 @@ import {
   Users,
   Coffee,
   Menu,
-  X
+  X,
+  Gift
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -259,6 +261,7 @@ const App: React.FC = () => {
     { id: 'attendance', label: 'Attendance', icon: Calendar },
     { id: 'leaves', label: 'Leave Requests', icon: FileText },
     { id: 'overtime', label: 'Additional Hours', icon: Clock },
+    { id: 'rewards', label: 'Rewards', icon: Gift },
     { id: 'performance', label: 'Performance', icon: Star },
     { id: 'profile', label: 'Profile', icon: UserIcon },
   ];
@@ -319,6 +322,8 @@ const App: React.FC = () => {
             onRefresh={fetchAllData}
           />
         );
+      case 'rewards':
+        return <Rewards user={user} todayTotalSeconds={todayTotalSeconds} />;
       case 'performance':
         return <Performance user={user} />;
       case 'profile':
