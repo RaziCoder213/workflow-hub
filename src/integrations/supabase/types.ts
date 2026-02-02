@@ -61,6 +61,36 @@ export type Database = {
           },
         ]
       }
+      authenticator_entries: {
+        Row: {
+          app_name: string
+          created_at: string
+          id: string
+          login_identity: string
+          secret_key: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          app_name: string
+          created_at?: string
+          id?: string
+          login_identity: string
+          secret_key: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          app_name?: string
+          created_at?: string
+          id?: string
+          login_identity?: string
+          secret_key?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       break_schedule: {
         Row: {
           day_of_week: number
@@ -406,6 +436,50 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      user_points: {
+        Row: {
+          awarded_by: string | null
+          awarded_date: string
+          category: string
+          created_at: string
+          id: string
+          notes: string | null
+          points: number
+          review_id: string | null
+          user_id: string
+        }
+        Insert: {
+          awarded_by?: string | null
+          awarded_date?: string
+          category: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points?: number
+          review_id?: string | null
+          user_id: string
+        }
+        Update: {
+          awarded_by?: string | null
+          awarded_date?: string
+          category?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points?: number
+          review_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_points_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "performance_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
