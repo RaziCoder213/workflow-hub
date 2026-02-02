@@ -83,32 +83,38 @@ export type Database = {
         Row: {
           created_at: string | null
           draw_date: string
+          email_sent: boolean | null
           id: string
           is_claimed: boolean | null
           is_winner: boolean | null
           reward_id: string | null
           user_id: string
           user_name: string
+          winner_selected_at: string | null
         }
         Insert: {
           created_at?: string | null
           draw_date?: string
+          email_sent?: boolean | null
           id?: string
           is_claimed?: boolean | null
           is_winner?: boolean | null
           reward_id?: string | null
           user_id: string
           user_name: string
+          winner_selected_at?: string | null
         }
         Update: {
           created_at?: string | null
           draw_date?: string
+          email_sent?: boolean | null
           id?: string
           is_claimed?: boolean | null
           is_winner?: boolean | null
           reward_id?: string | null
           user_id?: string
           user_name?: string
+          winner_selected_at?: string | null
         }
         Relationships: [
           {
@@ -163,6 +169,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          title: string
+          type?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
       }
       overtime: {
         Row: {
