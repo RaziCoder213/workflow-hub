@@ -26,7 +26,9 @@ import {
   TrendingUp,
   Calendar,
   AlertCircle,
-  AlertTriangle
+  AlertTriangle,
+  Star,
+  Award
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -53,10 +55,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [isWFH, setIsWFH] = useState(false);
   const [todayRecords, setTodayRecords] = useState<AttendanceRecord[]>([]);
   const [showIdleWarning, setShowIdleWarning] = useState(false);
+  const [monthlyPoints, setMonthlyPoints] = useState(0);
+  const [yearlyPoints, setYearlyPoints] = useState(0);
 
   const REQUIRED_SECONDS = 8 * 60 * 60; // 8 hours
   const IDLE_LIMIT = 15 * 60; // 15 minutes
   const IDLE_WARNING_THRESHOLD = 13 * 60; // 13 minutes - show warning
+  const MAX_POINTS = 200;
   const progressPercent = Math.min((todayTotalSeconds / REQUIRED_SECONDS) * 100, 100);
   const remainingSeconds = Math.max(REQUIRED_SECONDS - todayTotalSeconds, 0);
   const idleRemaining = IDLE_LIMIT - idleSeconds;
@@ -90,6 +95,54 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
     fetchTodayRecords();
   }, [user.id, currentSession]);
+
+  // Fetch points from performance reviews
+  useEffect(() => {
+    const fetchPoints = async () => {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      
+      // Get all performance reviews for this user
+      const { data: reviews } = await supabase
+        .from('performance_reviews')
+        .select('*')
+        .eq('userId', user.id);
+      
+      if (reviews) {
+        let monthTotal = 0;
+        let yearTotal = 0;
+        
+        reviews.forEach((review: { reviewDate: string; workPerformance: number; qualityResults: number; attendanceBehavior: number; officePolicies: number; teamContribution: number }) => {
+          const reviewDate = new Date(review.reviewDate);
+          const reviewMonth = reviewDate.getMonth() + 1;
+          const reviewYear = reviewDate.getFullYear();
+          
+          // Calculate points from 5 categories (each out of 10, total 50 per review * 4 = 200 max yearly)
+          const reviewPoints = 
+            (review.workPerformance || 0) + 
+            (review.qualityResults || 0) + 
+            (review.attendanceBehavior || 0) + 
+            (review.officePolicies || 0) + 
+            (review.teamContribution || 0);
+          
+          // Monthly points - reviews from this month
+          if (reviewYear === currentYear && reviewMonth === currentMonth) {
+            monthTotal += reviewPoints;
+          }
+          
+          // Yearly points - reviews from this year
+          if (reviewYear === currentYear) {
+            yearTotal += reviewPoints;
+          }
+        });
+        
+        setMonthlyPoints(Math.min(monthTotal, MAX_POINTS));
+        setYearlyPoints(Math.min(yearTotal, MAX_POINTS));
+      }
+    };
+    fetchPoints();
+  }, [user.id]);
 
   // Show idle warning when idle time reaches 13 minutes
   useEffect(() => {
@@ -231,6 +284,49 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {isBreakTime ? 'Currently on break' : 'Work hours excluded'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Points Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Monthly Points */}
+        <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-500" />
+              Monthly Points
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-bold text-primary">{monthlyPoints}</span>
+              <span className="text-lg text-muted-foreground mb-1">/ {MAX_POINTS}</span>
+            </div>
+            <Progress value={(monthlyPoints / MAX_POINTS) * 100} className="mt-2 h-2" />
+            <p className="text-xs text-muted-foreground mt-2">
+              Based on HR/Admin performance reviews this month
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Yearly Points */}
+        <Card className="bg-gradient-to-br from-yellow-500/5 to-transparent border-yellow-500/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Award className="w-4 h-4 text-yellow-500" />
+              Yearly Points
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{yearlyPoints}</span>
+              <span className="text-lg text-muted-foreground mb-1">/ {MAX_POINTS}</span>
+            </div>
+            <Progress value={(yearlyPoints / MAX_POINTS) * 100} className="mt-2 h-2 [&>div]:bg-yellow-500" />
+            <p className="text-xs text-muted-foreground mt-2">
+              Accumulated from all reviews this year
             </p>
           </CardContent>
         </Card>

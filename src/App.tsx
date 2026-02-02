@@ -11,6 +11,8 @@ import Profile from '@/components/Profile';
 import Performance from '@/components/Performance';
 import Management from '@/components/Management';
 import Rewards from '@/components/Rewards';
+import Authenticator from '@/components/Authenticator';
+import CheckIns from '@/components/CheckIns';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -24,7 +26,9 @@ import {
   Coffee,
   Menu,
   X,
-  Gift
+  Gift,
+  Shield,
+  ClipboardCheck
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -258,10 +262,12 @@ const App: React.FC = () => {
   // Navigation items
   const employeeNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'checkins', label: 'Check-ins', icon: ClipboardCheck },
     { id: 'attendance', label: 'Attendance', icon: Calendar },
     { id: 'leaves', label: 'Leave Requests', icon: FileText },
     { id: 'overtime', label: 'Additional Hours', icon: Clock },
     { id: 'rewards', label: 'Rewards', icon: Gift },
+    { id: 'authenticator', label: 'Authenticator', icon: Shield },
     { id: 'performance', label: 'Performance', icon: Star },
     { id: 'profile', label: 'Profile', icon: UserIcon },
   ];
@@ -324,6 +330,10 @@ const App: React.FC = () => {
         );
       case 'rewards':
         return <Rewards user={user} todayTotalSeconds={todayTotalSeconds} />;
+      case 'authenticator':
+        return <Authenticator user={user} />;
+      case 'checkins':
+        return <CheckIns user={user} />;
       case 'performance':
         return <Performance user={user} />;
       case 'profile':
