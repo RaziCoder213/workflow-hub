@@ -289,9 +289,11 @@ const App: React.FC = () => {
       return (
         <Management
           view={currentView}
+          currentUser={user}
           leaveRequests={leaveRequests}
           overtimeRequests={overtimeRequests}
           onRefresh={fetchAllData}
+          onNavigate={setCurrentView}
         />
       );
     }
