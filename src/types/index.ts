@@ -1,4 +1,5 @@
 export type UserRole = 'Admin' | 'HR' | 'Employee';
+export type UserStatus = 'active' | 'inactive' | 'suspended';
 
 export interface User {
   id: string;
@@ -9,8 +10,20 @@ export interface User {
   phoneNumber?: string;
   birthday?: string;
   avatar?: string;
+  status?: UserStatus;
   created_at?: string;
   auth_user_id?: string;
+}
+
+export interface RolePermission {
+  id: string;
+  role: UserRole;
+  permission: string;
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
+  created_at?: string;
 }
 
 export interface AttendanceRecord {
