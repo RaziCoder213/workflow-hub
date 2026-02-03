@@ -274,11 +274,12 @@ const App: React.FC = () => {
 
   const adminNav = [
     { id: 'command', label: 'Command Center', icon: LayoutDashboard },
-    { id: 'employees', label: 'All Employees', icon: Users },
+    { id: 'employees', label: 'Employee Management', icon: Users },
     { id: 'leaves', label: 'Leave Requests', icon: FileText },
     { id: 'overtime', label: 'Overtime Requests', icon: Clock },
     { id: 'breaks', label: 'Break Schedule', icon: Coffee },
-    { id: 'performance', label: 'Performance', icon: Star },
+    { id: 'performance', label: 'Performance Reviews', icon: Star },
+    { id: 'permissions', label: 'Role Permissions', icon: Shield },
   ];
 
   const navItems = isAdmin ? adminNav : employeeNav;
