@@ -342,6 +342,7 @@ export type Database = {
           name: string
           phoneNumber: string | null
           role: string | null
+          status: string | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -354,6 +355,7 @@ export type Database = {
           name: string
           phoneNumber?: string | null
           role?: string | null
+          status?: string | null
         }
         Update: {
           auth_user_id?: string | null
@@ -366,6 +368,7 @@ export type Database = {
           name?: string
           phoneNumber?: string | null
           role?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -434,6 +437,39 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          can_create: boolean | null
+          can_delete: boolean | null
+          can_edit: boolean | null
+          can_view: boolean | null
+          created_at: string | null
+          id: string
+          permission: string
+          role: string
+        }
+        Insert: {
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          permission: string
+          role: string
+        }
+        Update: {
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          permission?: string
+          role?: string
         }
         Relationships: []
       }
