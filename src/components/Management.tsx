@@ -6,6 +6,7 @@ import RolePermissions from '@/components/admin/RolePermissions';
 import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import RequestsManagement from '@/components/admin/RequestsManagement';
 import BreakScheduleManagement from '@/components/admin/BreakScheduleManagement';
+import RewardsManagement from '@/components/admin/RewardsManagement';
 
 interface ManagementProps {
   view: string;
@@ -59,6 +60,9 @@ export const Management: React.FC<ManagementProps> = ({
     
     case 'breaks':
       return <BreakScheduleManagement />;
+    
+    case 'rewards':
+      return <RewardsManagement />;
     
     default:
       return <AdminCommandCenter onNavigate={onNavigate} />;
