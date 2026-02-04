@@ -275,10 +275,11 @@ const App: React.FC = () => {
   const adminNav = [
     { id: 'command', label: 'Command Center', icon: LayoutDashboard },
     { id: 'employees', label: 'Employee Management', icon: Users },
-    { id: 'leaves', label: 'Leave Requests', icon: FileText },
-    { id: 'overtime', label: 'Overtime Requests', icon: Clock },
+    { id: 'leaves', label: 'Leave Approvals', icon: FileText },
+    { id: 'overtime', label: 'Overtime Approvals', icon: Clock },
     { id: 'breaks', label: 'Break Schedule', icon: Coffee },
     { id: 'performance', label: 'Performance Reviews', icon: Star },
+    { id: 'rewards', label: 'Rewards Management', icon: Gift },
     { id: 'permissions', label: 'Role Permissions', icon: Shield },
   ];
 

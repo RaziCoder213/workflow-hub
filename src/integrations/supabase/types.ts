@@ -109,6 +109,33 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system_role: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system_role?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system_role?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       daily_draws: {
         Row: {
           created_at: string | null
@@ -372,6 +399,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          points_required: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          points_required?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          points_required?: number | null
+        }
+        Relationships: []
+      }
       reward_claims: {
         Row: {
           claim_date: string
@@ -416,29 +473,46 @@ export type Database = {
       reward_items: {
         Row: {
           category: string
+          category_id: string | null
           created_at: string | null
+          description: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           name: string
+          points_cost: number | null
         }
         Insert: {
           category?: string
+          category_id?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          points_cost?: number | null
         }
         Update: {
           category?: string
+          category_id?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          points_cost?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reward_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "reward_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {

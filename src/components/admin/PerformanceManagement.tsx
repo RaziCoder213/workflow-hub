@@ -286,7 +286,10 @@ export const PerformanceManagement: React.FC<PerformanceManagementProps> = ({ cu
 
                   <div className="pt-4 border-t">
                     <p className="text-xs text-muted-foreground text-center">
-                      This review will add {getTotalScore()} points to the employee's monthly total
+                      This review adds {getTotalScore()} points (max 50/review)
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      Yearly target: 240 points
                     </p>
                   </div>
                 </CardContent>
