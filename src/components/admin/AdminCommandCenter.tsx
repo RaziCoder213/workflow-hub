@@ -282,7 +282,7 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
           <CardTitle className="text-lg">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('employees')}>
               <Users className="w-6 h-6 mb-2" />
               <span>Manage Employees</span>
@@ -294,6 +294,10 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
             <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('leaves')}>
               <Calendar className="w-6 h-6 mb-2" />
               <span>Leave Requests</span>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('holidays')}>
+              <PartyPopper className="w-6 h-6 mb-2" />
+              <span>Official Holidays</span>
             </Button>
             <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('permissions')}>
               <Activity className="w-6 h-6 mb-2" />
