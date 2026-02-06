@@ -7,6 +7,7 @@ import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import RequestsManagement from '@/components/admin/RequestsManagement';
 import BreakScheduleManagement from '@/components/admin/BreakScheduleManagement';
 import RewardsManagement from '@/components/admin/RewardsManagement';
+import HolidayManagement from '@/components/admin/HolidayManagement';
 
 interface ManagementProps {
   view: string;
