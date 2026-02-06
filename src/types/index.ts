@@ -82,3 +82,12 @@ export interface PerformanceReview {
   reviewDate: string;
   created_at?: string;
 }
+
+export interface OfficialHoliday {
+  id: string;
+  title: string;
+  description?: string;
+  holiday_date: string;
+  created_by?: string;
+  created_at?: string;
+}
