@@ -263,6 +263,33 @@ export type Database = {
         }
         Relationships: []
       }
+      official_holidays: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          holiday_date: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          holiday_date: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          holiday_date?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       overtime: {
         Row: {
           created_at: string | null
