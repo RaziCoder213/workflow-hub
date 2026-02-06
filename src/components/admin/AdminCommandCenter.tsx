@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Activity,
   ArrowRight,
-  FileText
+  FileText,
+  PartyPopper
 } from 'lucide-react';
 
 interface AdminCommandCenterProps {
