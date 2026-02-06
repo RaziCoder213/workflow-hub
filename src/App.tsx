@@ -373,34 +373,54 @@ const App: React.FC = () => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-sidebar-background text-sidebar-foreground
+        w-72 bg-card border-r border-border
         transform transition-transform duration-200 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col
+        flex flex-col shadow-lg lg:shadow-none
       `}>
         {/* Header */}
-        <div className="p-4 border-b border-sidebar-border">
+        <div className="p-5 border-b border-border">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold">Employee Portal</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                <span className="text-lg font-bold text-primary-foreground">EP</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Employee Portal</h1>
+                <p className="text-xs text-muted-foreground">{user.role}</p>
+              </div>
+            </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden text-sidebar-foreground h-9 w-9"
+                className="lg:hidden h-9 w-9"
                 onClick={() => setSidebarOpen(false)}
               >
                 <X className="w-5 h-5" />
               </Button>
             </div>
           </div>
-          <p className="text-sm text-sidebar-foreground/70 mt-1">
-            {user.name} • {user.role}
-          </p>
+        </div>
+
+        {/* User Info */}
+        <div className="p-4 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-sm font-semibold text-primary">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground truncate">{user.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -409,25 +429,25 @@ const App: React.FC = () => {
                 setSidebarOpen(false);
               }}
               className={`
-                w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-                transition-colors text-left
+                w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                transition-all duration-200 text-left
                 ${currentView === item.id 
-                  ? 'bg-sidebar-accent text-sidebar-primary' 
-                  : 'hover:bg-sidebar-accent/50'
+                  ? 'bg-primary text-primary-foreground shadow-md' 
+                  : 'hover:bg-muted text-foreground'
                 }
               `}
             >
               <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <span className="font-medium">{item.label}</span>
             </button>
           ))}
         </nav>
 
         {/* Logout */}
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-border">
           <Button
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
+            className="w-full justify-start h-12 text-muted-foreground hover:text-foreground hover:bg-muted"
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5 mr-3" />

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole, UserStatus } from '@/types';
@@ -17,13 +17,13 @@ import {
   Trash2,
   Pencil,
   Search,
-  Phone,
   Building,
   MoreVertical,
   UserCog,
   Power,
   Check,
-  X
+  Shield,
+  UserCheck
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -38,7 +38,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
-  // Create/Edit dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
@@ -52,7 +51,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Delete confirmation
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
@@ -121,7 +119,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
 
     try {
       if (editingUser) {
-        // Update existing user
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -136,7 +133,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
 
         if (error) throw error;
       } else {
-        // Check if email exists
         const { data: existing } = await supabase
           .from('profiles')
           .select('id')
@@ -149,7 +145,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
           return;
         }
 
-        // Create new user
         const { error } = await supabase.from('profiles').insert({
           name: formData.name,
           email: formData.email,
@@ -186,17 +181,20 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
     fetchEmployees();
   };
 
-  const getRoleBadgeVariant = (role: UserRole) => {
+  const getRoleBadge = (role: UserRole) => {
     switch (role) {
-      case 'Admin': return 'default';
-      case 'HR': return 'secondary';
-      default: return 'outline';
+      case 'Admin': 
+        return <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">Admin</Badge>;
+      case 'HR': 
+        return <Badge className="bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200">HR</Badge>;
+      default: 
+        return <Badge variant="outline" className="text-muted-foreground">Employee</Badge>;
     }
   };
 
   const getStatusBadge = (status?: string) => {
     const s = status || 'active';
-    if (s === 'active') return <Badge variant="default" className="bg-accent text-accent-foreground">Active</Badge>;
+    if (s === 'active') return <Badge className="bg-green-100 text-green-700 border-green-200">Active</Badge>;
     if (s === 'suspended') return <Badge variant="destructive">Suspended</Badge>;
     return <Badge variant="secondary">Inactive</Badge>;
   };
@@ -209,82 +207,90 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Employee Management</h1>
-          <p className="text-muted-foreground">Manage all employees, roles, and permissions</p>
+          <h1 className="text-3xl font-bold text-foreground">Employee Management</h1>
+          <p className="text-muted-foreground mt-1">Manage all employees, roles, and permissions</p>
         </div>
-        <Button onClick={openCreateDialog}>
-          <UserPlus className="w-4 h-4 mr-2" />
+        <Button onClick={openCreateDialog} size="lg" className="gap-2">
+          <UserPlus className="w-5 h-5" />
           Add Employee
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-card border border-border">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Employees</p>
+                <p className="text-3xl font-bold text-foreground">{stats.total}</p>
               </div>
-              <Users className="w-8 h-8 text-muted-foreground" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-card border border-border">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Admins</p>
-                <p className="text-2xl font-bold">{stats.admins}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Administrators</p>
+                <p className="text-3xl font-bold text-primary">{stats.admins}</p>
               </div>
-              <UserCog className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-card border border-border">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">HR Staff</p>
-                <p className="text-2xl font-bold">{stats.hr}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">HR Staff</p>
+                <p className="text-3xl font-bold text-purple-600">{stats.hr}</p>
               </div>
-              <Users className="w-8 h-8 text-secondary-foreground" />
+              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                <UserCog className="w-6 h-6 text-purple-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-card border border-border">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold text-accent">{stats.active}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Active Now</p>
+                <p className="text-3xl font-bold text-green-600">{stats.active}</p>
               </div>
-              <Check className="w-8 h-8 text-accent" />
+              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                <UserCheck className="w-6 h-6 text-green-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+      <Card className="bg-card border border-border">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 placeholder="Search by name, email, or department..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-12 h-12 text-base"
               />
             </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-full md:w-40">
+              <SelectTrigger className="w-full lg:w-48 h-12">
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
               <SelectContent>
@@ -295,7 +301,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-40">
+              <SelectTrigger className="w-full lg:w-48 h-12">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -310,67 +316,78 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
       </Card>
 
       {/* Employee Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Employees ({filteredEmployees.length})
+      <Card className="bg-card border border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            Employees
+            <Badge variant="secondary" className="ml-2 text-base px-3">{filteredEmployees.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
           ) : filteredEmployees.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No employees found
+            <div className="text-center py-16">
+              <Users className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+              <p className="text-lg font-medium text-foreground">No employees found</p>
+              <p className="text-muted-foreground">Try adjusting your search or filters</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="font-semibold">Employee</TableHead>
+                    <TableHead className="font-semibold">Department</TableHead>
+                    <TableHead className="font-semibold">Role</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="text-right font-semibold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredEmployees.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableRow key={user.id} className="hover:bg-muted/50">
                       <TableCell>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="w-3 h-3" />
-                          {user.email || '-'}
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-semibold text-primary">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">{user.name}</p>
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Mail className="w-3.5 h-3.5" />
+                              {user.email || '-'}
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         {user.department ? (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Building className="w-3 h-3" />
+                          <div className="flex items-center gap-2 text-foreground">
+                            <Building className="w-4 h-4 text-muted-foreground" />
                             {user.department}
                           </div>
-                        ) : '-'}
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>{getStatusBadge(user.status)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="h-9 w-9">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem onClick={() => openEditDialog(user)}>
                               <Pencil className="w-4 h-4 mr-2" />
                               Edit Details
@@ -383,14 +400,14 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  className="text-destructive"
+                                  className="text-destructive focus:text-destructive"
                                   onClick={() => {
                                     setUserToDelete(user);
                                     setDeleteDialogOpen(true);
                                   }}
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete
+                                  Delete Employee
                                 </DropdownMenuItem>
                               </>
                             )}
@@ -408,41 +425,45 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
+            <DialogTitle className="text-xl">
+              {editingUser ? 'Edit Employee' : 'Add New Employee'}
+            </DialogTitle>
             <DialogDescription>
               {editingUser ? 'Update employee details and permissions' : 'Create a new employee account'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+              <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="John Doe"
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email Address *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@hztech.biz"
+                placeholder="john@company.com"
+                className="h-11"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label className="text-sm font-medium">Role</Label>
                 <Select 
                   value={formData.role} 
                   onValueChange={(v) => setFormData({ ...formData, role: v as UserRole })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -455,12 +476,12 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className="text-sm font-medium">Status</Label>
                 <Select 
                   value={formData.status} 
                   onValueChange={(v) => setFormData({ ...formData, status: v as UserStatus })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -472,42 +493,49 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
+              <Label htmlFor="department" className="text-sm font-medium">Department</Label>
               <Input
                 id="department"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 placeholder="Engineering, Marketing, etc."
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
               <Input
                 id="phone"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 placeholder="+1 234 567 8900"
+                className="h-11"
               />
             </div>
             {formError && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              <div className="text-sm text-destructive bg-destructive/10 p-4 rounded-xl border border-destructive/20">
                 {formError}
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="h-11">
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={formLoading}>
+            <Button onClick={handleSubmit} disabled={formLoading} className="h-11 min-w-32">
               {formLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : editingUser ? (
-                <Check className="w-4 h-4 mr-2" />
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
               ) : (
-                <UserPlus className="w-4 h-4 mr-2" />
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create Employee
+                </>
               )}
-              {editingUser ? 'Save Changes' : 'Create Employee'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -515,20 +543,21 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ currentU
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Employee</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {userToDelete?.name}? This action cannot be undone.
+            <DialogTitle className="text-xl">Delete Employee</DialogTitle>
+            <DialogDescription className="pt-2">
+              Are you sure you want to delete <span className="font-semibold">{userToDelete?.name}</span>? 
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+          <DialogFooter className="gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="h-11">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={handleDelete} className="h-11">
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              Delete Employee
             </Button>
           </DialogFooter>
         </DialogContent>

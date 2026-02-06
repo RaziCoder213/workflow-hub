@@ -16,7 +16,8 @@ import {
   Activity,
   ArrowRight,
   FileText,
-  PartyPopper
+  PartyPopper,
+  ChevronRight
 } from 'lucide-react';
 
 interface AdminCommandCenterProps {
@@ -89,111 +90,149 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
     setLoading(false);
   };
 
+  const StatCard = ({ 
+    icon: Icon, 
+    value, 
+    label, 
+    color = "primary",
+    onClick 
+  }: { 
+    icon: any; 
+    value: number | string; 
+    label: string; 
+    color?: string;
+    onClick?: () => void;
+  }) => (
+    <Card 
+      className={`${onClick ? 'cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-200' : ''} bg-card border border-border`}
+      onClick={onClick}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
+            <p className={`text-3xl font-bold ${color === 'primary' ? 'text-primary' : color === 'success' ? 'text-green-600' : color === 'warning' ? 'text-amber-500' : 'text-foreground'}`}>
+              {value}
+            </p>
+          </div>
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color === 'primary' ? 'bg-primary/10' : color === 'success' ? 'bg-green-100' : color === 'warning' ? 'bg-amber-100' : 'bg-muted'}`}>
+            <Icon className={`w-7 h-7 ${color === 'primary' ? 'text-primary' : color === 'success' ? 'text-green-600' : color === 'warning' ? 'text-amber-500' : 'text-muted-foreground'}`} />
+          </div>
+        </div>
+        {onClick && (
+          <div className="mt-4 flex items-center text-sm text-primary font-medium">
+            View details <ChevronRight className="w-4 h-4 ml-1" />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Command Center</h1>
-        <p className="text-muted-foreground">Real-time workforce overview and quick actions</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Command Center</h1>
+          <p className="text-muted-foreground mt-1">Real-time workforce overview and quick actions</p>
+        </div>
+        <Badge variant="outline" className="w-fit text-sm px-4 py-2 border-primary/30 text-primary bg-primary/5">
+          <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+          Live Dashboard
+        </Badge>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('employees')}>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center">
-              <Users className="w-8 h-8 text-primary mb-2" />
-              <p className="text-2xl font-bold">{stats.totalEmployees}</p>
-              <p className="text-xs text-muted-foreground">Total Staff</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-accent mb-2" />
-              <p className="text-2xl font-bold text-accent">{stats.activeEmployees}</p>
-              <p className="text-xs text-muted-foreground">Active</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center">
-              <CheckCircle className="w-8 h-8 text-accent mb-2" />
-              <p className="text-2xl font-bold text-accent">{stats.onlineNow}</p>
-              <p className="text-xs text-muted-foreground">Online Now</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center">
-              <Clock className="w-8 h-8 text-muted-foreground mb-2" />
-              <p className="text-2xl font-bold">{stats.todayCheckIns}</p>
-              <p className="text-xs text-muted-foreground">Today's Check-ins</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('leaves')}>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center">
-              <Calendar className="w-8 h-8 text-warning mb-2" />
-              <p className="text-2xl font-bold text-warning">{stats.pendingLeaves}</p>
-              <p className="text-xs text-muted-foreground">Pending Leaves</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('overtime')}>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center">
-              <AlertCircle className="w-8 h-8 text-info mb-2" />
-              <p className="text-2xl font-bold text-info">{stats.pendingOvertime}</p>
-              <p className="text-xs text-muted-foreground">Pending OT</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <StatCard 
+          icon={Users} 
+          value={stats.totalEmployees} 
+          label="Total Staff" 
+          color="primary"
+          onClick={() => onNavigate('employees')} 
+        />
+        <StatCard 
+          icon={Activity} 
+          value={stats.activeEmployees} 
+          label="Active Employees" 
+          color="success"
+        />
+        <StatCard 
+          icon={CheckCircle} 
+          value={stats.onlineNow} 
+          label="Online Now" 
+          color="success"
+        />
+        <StatCard 
+          icon={Clock} 
+          value={stats.todayCheckIns} 
+          label="Today's Check-ins" 
+        />
+        <StatCard 
+          icon={Calendar} 
+          value={stats.pendingLeaves} 
+          label="Pending Leaves" 
+          color="warning"
+          onClick={() => onNavigate('leaves')} 
+        />
+        <StatCard 
+          icon={AlertCircle} 
+          value={stats.pendingOvertime} 
+          label="Pending OT" 
+          color="warning"
+          onClick={() => onNavigate('overtime')} 
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Live Staff */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className="w-5 h-5 text-accent" />
-                Staff Online Now
-              </CardTitle>
-              <CardDescription>Currently checked in employees</CardDescription>
+        <Card className="bg-card border border-border">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-green-600" />
+                  </div>
+                  Staff Online Now
+                </CardTitle>
+                <CardDescription className="mt-2">Currently checked in employees</CardDescription>
+              </div>
+              <Badge variant="secondary" className="text-lg px-3 py-1">
+                {stats.onlineNow}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
             {liveAttendance.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No staff currently online</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No staff currently online</p>
+              </div>
             ) : (
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
                 {liveAttendance.map((record) => (
-                  <div key={record.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                  <div key={record.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border/50 hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-primary">
+                            {record.userName?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
+                      </div>
                       <div>
-                        <p className="font-medium">{record.userName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Since {new Date(record.checkIn).toLocaleTimeString()}
+                        <p className="font-semibold text-foreground">{record.userName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Since {new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
-                    <Badge variant={record.isWFH ? 'secondary' : 'default'}>
-                      {record.isWFH ? (
-                        <><Home className="w-3 h-3 mr-1" /> WFH</>
-                      ) : (
-                        <><Building className="w-3 h-3 mr-1" /> Office</>
-                      )}
+                    <Badge variant={record.isWFH ? 'secondary' : 'default'} className="gap-1.5">
+                      {record.isWFH ? <Home className="w-3.5 h-3.5" /> : <Building className="w-3.5 h-3.5" />}
+                      {record.isWFH ? 'WFH' : 'Office'}
                     </Badge>
                   </div>
                 ))}
@@ -203,37 +242,53 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
         </Card>
 
         {/* Pending Actions */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-warning" />
-                Pending Approvals
-              </CardTitle>
-              <CardDescription>Items awaiting your action</CardDescription>
+        <Card className="bg-card border border-border">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-amber-600" />
+                  </div>
+                  Pending Approvals
+                </CardTitle>
+                <CardDescription className="mt-2">Items awaiting your action</CardDescription>
+              </div>
+              <Badge variant="secondary" className="text-lg px-3 py-1 bg-amber-100 text-amber-700">
+                {stats.pendingLeaves + stats.pendingOvertime}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Pending Leaves */}
               {recentLeaves.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Leave Requests</h4>
-                    <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onNavigate('leaves')}>
-                      View All <ArrowRight className="w-3 h-3 ml-1" />
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-foreground">Leave Requests</h4>
+                    <Button variant="ghost" size="sm" className="h-auto p-0 text-primary hover:text-primary/80" onClick={() => onNavigate('leaves')}>
+                      View All <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
                   <div className="space-y-2">
                     {recentLeaves.slice(0, 3).map((leave) => (
-                      <div key={leave.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                        <div>
-                          <p className="text-sm font-medium">{leave.userName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {leave.type} • {new Date(leave.startDate).toLocaleDateString()}
-                          </p>
+                      <div key={leave.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-primary">
+                              {leave.userName?.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{leave.userName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {leave.type} • {new Date(leave.startDate).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <Badge variant="secondary">Pending</Badge>
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                          Pending
+                        </Badge>
                       </div>
                     ))}
                   </div>
@@ -243,22 +298,31 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
               {/* Pending Overtime */}
               {recentOvertime.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Overtime Requests</h4>
-                    <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onNavigate('overtime')}>
-                      View All <ArrowRight className="w-3 h-3 ml-1" />
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-foreground">Overtime Requests</h4>
+                    <Button variant="ghost" size="sm" className="h-auto p-0 text-primary hover:text-primary/80" onClick={() => onNavigate('overtime')}>
+                      View All <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
                   <div className="space-y-2">
                     {recentOvertime.slice(0, 3).map((ot) => (
-                      <div key={ot.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                        <div>
-                          <p className="text-sm font-medium">{ot.userName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {ot.hours} hours • {ot.project}
-                          </p>
+                      <div key={ot.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-primary">
+                              {ot.userName?.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{ot.userName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {ot.hours} hours • {ot.project}
+                            </p>
+                          </div>
                         </div>
-                        <Badge variant="secondary">Pending</Badge>
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                          Pending
+                        </Badge>
                       </div>
                     ))}
                   </div>
@@ -266,10 +330,11 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
               )}
 
               {recentLeaves.length === 0 && recentOvertime.length === 0 && (
-                <p className="text-muted-foreground text-center py-8">
-                  <CheckCircle className="w-8 h-8 mx-auto mb-2 text-accent" />
-                  All caught up! No pending approvals.
-                </p>
+                <div className="text-center py-12 text-muted-foreground">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-500" />
+                  <p className="font-medium text-foreground">All caught up!</p>
+                  <p className="text-sm">No pending approvals at the moment.</p>
+                </div>
               )}
             </div>
           </CardContent>
@@ -277,31 +342,62 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="bg-card border border-border">
         <CardHeader>
-          <CardTitle className="text-lg">Quick Actions</CardTitle>
+          <CardTitle className="text-xl">Quick Actions</CardTitle>
+          <CardDescription>Common administrative tasks</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('employees')}>
-              <Users className="w-6 h-6 mb-2" />
-              <span>Manage Employees</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
+              onClick={() => onNavigate('employees')}
+            >
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <span className="font-medium">Manage Employees</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('performance')}>
-              <TrendingUp className="w-6 h-6 mb-2" />
-              <span>Performance Review</span>
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
+              onClick={() => onNavigate('performance')}
+            >
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <span className="font-medium">Performance Review</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('leaves')}>
-              <Calendar className="w-6 h-6 mb-2" />
-              <span>Leave Requests</span>
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
+              onClick={() => onNavigate('leaves')}
+            >
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-primary" />
+              </div>
+              <span className="font-medium">Leave Requests</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('holidays')}>
-              <PartyPopper className="w-6 h-6 mb-2" />
-              <span>Official Holidays</span>
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
+              onClick={() => onNavigate('holidays')}
+            >
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <PartyPopper className="w-6 h-6 text-primary" />
+              </div>
+              <span className="font-medium">Official Holidays</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col" onClick={() => onNavigate('permissions')}>
-              <Activity className="w-6 h-6 mb-2" />
-              <span>Role Permissions</span>
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
+              onClick={() => onNavigate('permissions')}
+            >
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Activity className="w-6 h-6 text-primary" />
+              </div>
+              <span className="font-medium">Role Permissions</span>
             </Button>
           </div>
         </CardContent>
