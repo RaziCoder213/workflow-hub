@@ -28,7 +28,8 @@ import {
   X,
   Gift,
   Shield,
-  ClipboardCheck
+  ClipboardCheck,
+  PartyPopper
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
