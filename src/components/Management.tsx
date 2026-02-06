@@ -65,6 +65,9 @@ export const Management: React.FC<ManagementProps> = ({
     case 'rewards':
       return <RewardsManagement />;
     
+    case 'holidays':
+      return <HolidayManagement />;
+    
     default:
       return <AdminCommandCenter onNavigate={onNavigate} />;
   }
