@@ -9,6 +9,8 @@ import BreakScheduleManagement from '@/components/admin/BreakScheduleManagement'
 import RewardsManagement from '@/components/admin/RewardsManagement';
 import HolidayManagement from '@/components/admin/HolidayManagement';
 import ProjectManagement from '@/components/admin/ProjectManagement';
+import HoursAdjustment from '@/components/admin/HoursAdjustment';
+import EmployeeHoursOverview from '@/components/admin/EmployeeHoursOverview';
 
 interface ManagementProps {
   view: string;
@@ -71,6 +73,12 @@ export const Management: React.FC<ManagementProps> = ({
     
     case 'projects':
       return <ProjectManagement />;
+    
+    case 'hours-adjustment':
+      return <HoursAdjustment currentUser={currentUser} />;
+    
+    case 'hours-overview':
+      return <EmployeeHoursOverview />;
     
     default:
       return <AdminCommandCenter onNavigate={onNavigate} />;
