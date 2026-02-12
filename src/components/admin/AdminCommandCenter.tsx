@@ -382,6 +382,16 @@ export const AdminCommandCenter: React.FC<AdminCommandCenterProps> = ({ onNaviga
             <Button 
               variant="outline" 
               className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
+              onClick={() => onNavigate('projects')}
+            >
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <span className="font-medium">Projects</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200" 
               onClick={() => onNavigate('holidays')}
             >
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">

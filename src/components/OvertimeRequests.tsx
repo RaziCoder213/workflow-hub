@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { User, OvertimeRequest } from '@/types';
 import { Clock, Plus, CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
@@ -25,11 +26,24 @@ export const OvertimeRequests: React.FC<OvertimeRequestsProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     project: '',
     hours: '',
     reason: '',
   });
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('status', 'in_progress')
+        .order('name');
+      if (data) setProjects(data);
+    };
+    fetchProjects();
+  }, []);
 
   const myRequests = requests.filter(r => r.userId === user.id);
   const REQUIRED_SECONDS = 8 * 60 * 60;
@@ -113,13 +127,17 @@ export const OvertimeRequests: React.FC<OvertimeRequestsProps> = ({
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label>Project Name</Label>
-                <Input
-                  value={formData.project}
-                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  placeholder="Enter project name"
-                  required
-                />
+                <Label>Project</Label>
+                <Select value={formData.project} onValueChange={v => setFormData({ ...formData, project: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map(p => (
+                      <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Hours (max 3)</Label>
