@@ -30,7 +30,9 @@ import {
   Shield,
   ClipboardCheck,
   PartyPopper,
-  FolderKanban
+  FolderKanban,
+  Wrench,
+  BarChart3
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -284,6 +286,8 @@ const App: React.FC = () => {
     { id: 'breaks', label: 'Break Schedule', icon: Coffee },
     { id: 'performance', label: 'Performance Reviews', icon: Star },
     { id: 'rewards', label: 'Rewards Management', icon: Gift },
+    { id: 'hours-adjustment', label: 'Hours Adjustment', icon: Wrench },
+    { id: 'hours-overview', label: 'Employee Hours', icon: BarChart3 },
     { id: 'permissions', label: 'Role Permissions', icon: Shield },
   ];
 

@@ -183,6 +183,42 @@ export type Database = {
           },
         ]
       }
+      hours_adjustments: {
+        Row: {
+          adjusted_by: string
+          adjusted_by_name: string
+          adjustment_seconds: number
+          created_at: string
+          employee_id: string
+          employee_name: string
+          id: string
+          reason: string
+          week_start: string
+        }
+        Insert: {
+          adjusted_by: string
+          adjusted_by_name: string
+          adjustment_seconds?: number
+          created_at?: string
+          employee_id: string
+          employee_name: string
+          id?: string
+          reason: string
+          week_start: string
+        }
+        Update: {
+          adjusted_by?: string
+          adjusted_by_name?: string
+          adjustment_seconds?: number
+          created_at?: string
+          employee_id?: string
+          employee_name?: string
+          id?: string
+          reason?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       leaves: {
         Row: {
           created_at: string | null
