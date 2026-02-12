@@ -29,7 +29,8 @@ import {
   Gift,
   Shield,
   ClipboardCheck,
-  PartyPopper
+  PartyPopper,
+  FolderKanban
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -278,6 +279,7 @@ const App: React.FC = () => {
     { id: 'employees', label: 'Employee Management', icon: Users },
     { id: 'leaves', label: 'Leave Approvals', icon: FileText },
     { id: 'overtime', label: 'Overtime Approvals', icon: Clock },
+    { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'holidays', label: 'Official Holidays', icon: PartyPopper },
     { id: 'breaks', label: 'Break Schedule', icon: Coffee },
     { id: 'performance', label: 'Performance Reviews', icon: Star },

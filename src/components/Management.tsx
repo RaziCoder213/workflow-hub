@@ -8,6 +8,7 @@ import RequestsManagement from '@/components/admin/RequestsManagement';
 import BreakScheduleManagement from '@/components/admin/BreakScheduleManagement';
 import RewardsManagement from '@/components/admin/RewardsManagement';
 import HolidayManagement from '@/components/admin/HolidayManagement';
+import ProjectManagement from '@/components/admin/ProjectManagement';
 
 interface ManagementProps {
   view: string;
@@ -67,6 +68,9 @@ export const Management: React.FC<ManagementProps> = ({
     
     case 'holidays':
       return <HolidayManagement />;
+    
+    case 'projects':
+      return <ProjectManagement />;
     
     default:
       return <AdminCommandCenter onNavigate={onNavigate} />;
