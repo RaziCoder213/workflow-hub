@@ -97,42 +97,41 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
     </Card>
   );
 
-  // Filtering logic
-  const applyFilters = <T extends { userName: string; status: string }>(
-    items: T[], 
-    getDate: (item: T) => string
-  ) => {
-    return items.filter(item => {
-      // Status filter
+  // All filtering at top level (no conditional hooks)
+  const filteredLeaves = useMemo(() => {
+    return leaveRequests.filter(item => {
       if (activeTab === 'pending' && item.status !== 'Pending') return false;
       if (activeTab === 'approved' && item.status !== 'Approved') return false;
       if (activeTab === 'rejected' && item.status !== 'Rejected') return false;
-      
-      // Search filter
       if (search && !item.userName.toLowerCase().includes(search.toLowerCase())) return false;
-      
-      // Date range filter
-      const itemDate = getDate(item);
-      if (dateFrom && itemDate < dateFrom) return false;
-      if (dateTo && itemDate > dateTo) return false;
-
+      if (dateFrom && item.startDate < dateFrom) return false;
+      if (dateTo && item.startDate > dateTo) return false;
+      if (leaveType !== 'all' && item.type !== leaveType) return false;
       return true;
     });
-  };
+  }, [leaveRequests, activeTab, search, dateFrom, dateTo, leaveType]);
+
+  const filteredOvertime = useMemo(() => {
+    return overtimeRequests.filter(item => {
+      if (activeTab === 'pending' && item.status !== 'Pending') return false;
+      if (activeTab === 'approved' && item.status !== 'Approved') return false;
+      if (activeTab === 'rejected' && item.status !== 'Rejected') return false;
+      if (search && !item.userName.toLowerCase().includes(search.toLowerCase())) return false;
+      if (dateFrom && item.date < dateFrom) return false;
+      if (dateTo && item.date > dateTo) return false;
+      return true;
+    });
+  }, [overtimeRequests, activeTab, search, dateFrom, dateTo]);
+
+  const leavePendingCount = leaveRequests.filter(l => l.status === 'Pending').length;
+  const leaveApprovedCount = leaveRequests.filter(l => l.status === 'Approved').length;
+  const leaveRejectedCount = leaveRequests.filter(l => l.status === 'Rejected').length;
+
+  const otPendingCount = overtimeRequests.filter(o => o.status === 'Pending').length;
+  const otApprovedCount = overtimeRequests.filter(o => o.status === 'Approved').length;
+  const otRejectedCount = overtimeRequests.filter(o => o.status === 'Rejected').length;
 
   if (type === 'leaves') {
-    const filteredLeaves = useMemo(() => {
-      let items = applyFilters(leaveRequests, (r) => r.startDate);
-      if (leaveType !== 'all') {
-        items = items.filter(r => r.type === leaveType);
-      }
-      return items;
-    }, [leaveRequests, activeTab, search, dateFrom, dateTo, leaveType]);
-
-    const pendingCount = leaveRequests.filter(l => l.status === 'Pending').length;
-    const approvedCount = leaveRequests.filter(l => l.status === 'Approved').length;
-    const rejectedCount = leaveRequests.filter(l => l.status === 'Rejected').length;
-
     return (
       <div className="space-y-6">
         <div>
@@ -141,9 +140,9 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard icon={AlertCircle} value={pendingCount} label="Pending" color="text-amber-600" />
-          <StatCard icon={CalendarCheck} value={approvedCount} label="Approved" color="text-green-600" />
-          <StatCard icon={CalendarX} value={rejectedCount} label="Rejected" color="text-red-600" />
+          <StatCard icon={AlertCircle} value={leavePendingCount} label="Pending" color="text-amber-600" />
+          <StatCard icon={CalendarCheck} value={leaveApprovedCount} label="Approved" color="text-green-600" />
+          <StatCard icon={CalendarX} value={leaveRejectedCount} label="Rejected" color="text-red-600" />
         </div>
 
         {/* Filters */}
@@ -152,12 +151,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
             <div className="flex flex-col lg:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by employee name..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pl-9"
-                />
+                <Input placeholder="Search by employee name..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
               </div>
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="w-full lg:w-44">
@@ -173,9 +167,9 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
               </Select>
               <div className="flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full lg:w-40" placeholder="From" />
+                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full lg:w-40" />
                 <span className="text-muted-foreground">—</span>
-                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full lg:w-40" placeholder="To" />
+                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full lg:w-40" />
               </div>
             </div>
           </CardContent>
@@ -186,8 +180,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
               <TabsList className="grid w-full sm:w-auto grid-cols-3 h-12">
                 <TabsTrigger value="pending" className="gap-2 px-6">
-                  Pending
-                  {pendingCount > 0 && <Badge variant="secondary" className="ml-1">{pendingCount}</Badge>}
+                  Pending {leavePendingCount > 0 && <Badge variant="secondary" className="ml-1">{leavePendingCount}</Badge>}
                 </TabsTrigger>
                 <TabsTrigger value="approved" className="gap-2 px-6">Approved</TabsTrigger>
                 <TabsTrigger value="rejected" className="gap-2 px-6">Rejected</TabsTrigger>
@@ -208,9 +201,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-semibold text-primary">
-                            {request.userName?.charAt(0).toUpperCase()}
-                          </span>
+                          <span className="text-lg font-semibold text-primary">{request.userName?.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
@@ -228,37 +219,17 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                           <p className="text-sm text-muted-foreground">{request.reason}</p>
                         </div>
                       </div>
-                      
                       <div className="flex items-center gap-3 ml-16 lg:ml-0">
                         {request.status === 'Pending' ? (
                           <>
-                            <Button
-                              onClick={() => handleLeaveAction(request.id, 'Approved')}
-                              disabled={processing === request.id}
-                              className="bg-green-600 hover:bg-green-700 h-10 px-5"
-                            >
-                              {processing === request.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Approve
-                                </>
-                              )}
+                            <Button onClick={() => handleLeaveAction(request.id, 'Approved')} disabled={processing === request.id} className="bg-green-600 hover:bg-green-700 h-10 px-5">
+                              {processing === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4 mr-2" />Approve</>}
                             </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleLeaveAction(request.id, 'Rejected')}
-                              disabled={processing === request.id}
-                              className="h-10 px-5"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Reject
+                            <Button variant="destructive" onClick={() => handleLeaveAction(request.id, 'Rejected')} disabled={processing === request.id} className="h-10 px-5">
+                              <XCircle className="w-4 h-4 mr-2" />Reject
                             </Button>
                           </>
-                        ) : (
-                          getStatusBadge(request.status)
-                        )}
+                        ) : getStatusBadge(request.status)}
                       </div>
                     </div>
                   </div>
@@ -271,15 +242,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
     );
   }
 
-  // Overtime requests
-  const filteredOvertime = useMemo(() => {
-    return applyFilters(overtimeRequests, (r) => r.date);
-  }, [overtimeRequests, activeTab, search, dateFrom, dateTo]);
-
-  const pendingCount = overtimeRequests.filter(o => o.status === 'Pending').length;
-  const approvedCount = overtimeRequests.filter(o => o.status === 'Approved').length;
-  const rejectedCount = overtimeRequests.filter(o => o.status === 'Rejected').length;
-
+  // Overtime view
   return (
     <div className="space-y-6">
       <div>
@@ -288,9 +251,9 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={AlertCircle} value={pendingCount} label="Pending" color="text-amber-600" />
-        <StatCard icon={CheckCircle} value={approvedCount} label="Approved" color="text-green-600" />
-        <StatCard icon={XCircle} value={rejectedCount} label="Rejected" color="text-red-600" />
+        <StatCard icon={AlertCircle} value={otPendingCount} label="Pending" color="text-amber-600" />
+        <StatCard icon={CheckCircle} value={otApprovedCount} label="Approved" color="text-green-600" />
+        <StatCard icon={XCircle} value={otRejectedCount} label="Rejected" color="text-red-600" />
       </div>
 
       {/* Filters */}
@@ -299,12 +262,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by employee name..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-9"
-              />
+              <Input placeholder="Search by employee name..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
             <div className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -321,8 +279,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
             <TabsList className="grid w-full sm:w-auto grid-cols-3 h-12">
               <TabsTrigger value="pending" className="gap-2 px-6">
-                Pending
-                {pendingCount > 0 && <Badge variant="secondary" className="ml-1">{pendingCount}</Badge>}
+                Pending {otPendingCount > 0 && <Badge variant="secondary" className="ml-1">{otPendingCount}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-2 px-6">Approved</TabsTrigger>
               <TabsTrigger value="rejected" className="gap-2 px-6">Rejected</TabsTrigger>
@@ -343,9 +300,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-lg font-semibold text-primary">
-                          {request.userName?.charAt(0).toUpperCase()}
-                        </span>
+                        <span className="text-lg font-semibold text-primary">{request.userName?.charAt(0).toUpperCase()}</span>
                       </div>
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
@@ -366,37 +321,17 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                         <p className="text-sm text-muted-foreground">{request.reason}</p>
                       </div>
                     </div>
-                    
                     <div className="flex items-center gap-3 ml-16 lg:ml-0">
                       {request.status === 'Pending' ? (
                         <>
-                          <Button
-                            onClick={() => handleOvertimeAction(request.id, 'Approved')}
-                            disabled={processing === request.id}
-                            className="bg-green-600 hover:bg-green-700 h-10 px-5"
-                          >
-                            {processing === request.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Approve
-                              </>
-                            )}
+                          <Button onClick={() => handleOvertimeAction(request.id, 'Approved')} disabled={processing === request.id} className="bg-green-600 hover:bg-green-700 h-10 px-5">
+                            {processing === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4 mr-2" />Approve</>}
                           </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => handleOvertimeAction(request.id, 'Rejected')}
-                            disabled={processing === request.id}
-                            className="h-10 px-5"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Reject
+                          <Button variant="destructive" onClick={() => handleOvertimeAction(request.id, 'Rejected')} disabled={processing === request.id} className="h-10 px-5">
+                            <XCircle className="w-4 h-4 mr-2" />Reject
                           </Button>
                         </>
-                      ) : (
-                        getStatusBadge(request.status)
-                      )}
+                      ) : getStatusBadge(request.status)}
                     </div>
                   </div>
                 </div>
