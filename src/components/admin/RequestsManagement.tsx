@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { LeaveRequest, OvertimeRequest } from '@/types';
 import { 
@@ -10,12 +12,14 @@ import {
   Clock, 
   CheckCircle, 
   XCircle,
-  User,
   FileText,
   Loader2,
   CalendarCheck,
   CalendarX,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Filter,
+  CalendarDays
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -34,6 +38,10 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
 }) => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [leaveType, setLeaveType] = useState('all');
 
   const handleLeaveAction = async (id: string, status: 'Approved' | 'Rejected') => {
     setProcessing(id);
@@ -70,13 +78,6 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
     }
   };
 
-  const filterByStatus = <T extends { status: string }>(items: T[], status: string) => {
-    if (status === 'pending') return items.filter(i => i.status === 'Pending');
-    if (status === 'approved') return items.filter(i => i.status === 'Approved');
-    if (status === 'rejected') return items.filter(i => i.status === 'Rejected');
-    return items;
-  };
-
   const StatCard = ({ icon: Icon, value, label, color }: { icon: any; value: number; label: string; color: string }) => (
     <Card className="bg-card border border-border">
       <CardContent className="p-6">
@@ -96,34 +97,90 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
     </Card>
   );
 
-  if (type === 'leaves') {
-    const filteredLeaves = filterByStatus(leaveRequests, activeTab);
-    const pendingCount = leaveRequests.filter(l => l.status === 'Pending').length;
-    const approvedCount = leaveRequests.filter(l => l.status === 'Approved').length;
-    const rejectedCount = leaveRequests.filter(l => l.status === 'Rejected').length;
+  // All filtering at top level (no conditional hooks)
+  const filteredLeaves = useMemo(() => {
+    return leaveRequests.filter(item => {
+      if (activeTab === 'pending' && item.status !== 'Pending') return false;
+      if (activeTab === 'approved' && item.status !== 'Approved') return false;
+      if (activeTab === 'rejected' && item.status !== 'Rejected') return false;
+      if (search && !item.userName.toLowerCase().includes(search.toLowerCase())) return false;
+      if (dateFrom && item.startDate < dateFrom) return false;
+      if (dateTo && item.startDate > dateTo) return false;
+      if (leaveType !== 'all' && item.type !== leaveType) return false;
+      return true;
+    });
+  }, [leaveRequests, activeTab, search, dateFrom, dateTo, leaveType]);
 
+  const filteredOvertime = useMemo(() => {
+    return overtimeRequests.filter(item => {
+      if (activeTab === 'pending' && item.status !== 'Pending') return false;
+      if (activeTab === 'approved' && item.status !== 'Approved') return false;
+      if (activeTab === 'rejected' && item.status !== 'Rejected') return false;
+      if (search && !item.userName.toLowerCase().includes(search.toLowerCase())) return false;
+      if (dateFrom && item.date < dateFrom) return false;
+      if (dateTo && item.date > dateTo) return false;
+      return true;
+    });
+  }, [overtimeRequests, activeTab, search, dateFrom, dateTo]);
+
+  const leavePendingCount = leaveRequests.filter(l => l.status === 'Pending').length;
+  const leaveApprovedCount = leaveRequests.filter(l => l.status === 'Approved').length;
+  const leaveRejectedCount = leaveRequests.filter(l => l.status === 'Rejected').length;
+
+  const otPendingCount = overtimeRequests.filter(o => o.status === 'Pending').length;
+  const otApprovedCount = overtimeRequests.filter(o => o.status === 'Approved').length;
+  const otRejectedCount = overtimeRequests.filter(o => o.status === 'Rejected').length;
+
+  if (type === 'leaves') {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Leave Requests</h1>
           <p className="text-muted-foreground mt-1">Review and manage employee leave applications</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard icon={AlertCircle} value={pendingCount} label="Pending" color="text-amber-600" />
-          <StatCard icon={CalendarCheck} value={approvedCount} label="Approved" color="text-green-600" />
-          <StatCard icon={CalendarX} value={rejectedCount} label="Rejected" color="text-red-600" />
+          <StatCard icon={AlertCircle} value={leavePendingCount} label="Pending" color="text-amber-600" />
+          <StatCard icon={CalendarCheck} value={leaveApprovedCount} label="Approved" color="text-green-600" />
+          <StatCard icon={CalendarX} value={leaveRejectedCount} label="Rejected" color="text-red-600" />
         </div>
+
+        {/* Filters */}
+        <Card className="bg-card border border-border">
+          <CardContent className="p-4">
+            <div className="flex flex-col lg:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input placeholder="Search by employee name..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+              </div>
+              <Select value={leaveType} onValueChange={setLeaveType}>
+                <SelectTrigger className="w-full lg:w-44">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Leave Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="Sick">Sick</SelectItem>
+                  <SelectItem value="Casual">Casual</SelectItem>
+                  <SelectItem value="Annual">Annual</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full lg:w-40" />
+                <span className="text-muted-foreground">—</span>
+                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full lg:w-40" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="bg-card border border-border">
           <CardHeader className="pb-4">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
               <TabsList className="grid w-full sm:w-auto grid-cols-3 h-12">
                 <TabsTrigger value="pending" className="gap-2 px-6">
-                  Pending
-                  {pendingCount > 0 && (
-                    <Badge variant="secondary" className="ml-1">{pendingCount}</Badge>
-                  )}
+                  Pending {leavePendingCount > 0 && <Badge variant="secondary" className="ml-1">{leavePendingCount}</Badge>}
                 </TabsTrigger>
                 <TabsTrigger value="approved" className="gap-2 px-6">Approved</TabsTrigger>
                 <TabsTrigger value="rejected" className="gap-2 px-6">Rejected</TabsTrigger>
@@ -134,8 +191,8 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
             {filteredLeaves.length === 0 ? (
               <div className="text-center py-16">
                 <Calendar className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-                <p className="text-lg font-medium text-foreground">No {activeTab} leave requests</p>
-                <p className="text-muted-foreground">Check other tabs for more requests</p>
+                <p className="text-lg font-medium text-foreground">No matching leave requests</p>
+                <p className="text-muted-foreground">Try adjusting your filters</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -144,9 +201,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-semibold text-primary">
-                            {request.userName?.charAt(0).toUpperCase()}
-                          </span>
+                          <span className="text-lg font-semibold text-primary">{request.userName?.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
@@ -164,37 +219,17 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                           <p className="text-sm text-muted-foreground">{request.reason}</p>
                         </div>
                       </div>
-                      
                       <div className="flex items-center gap-3 ml-16 lg:ml-0">
                         {request.status === 'Pending' ? (
                           <>
-                            <Button
-                              onClick={() => handleLeaveAction(request.id, 'Approved')}
-                              disabled={processing === request.id}
-                              className="bg-green-600 hover:bg-green-700 h-10 px-5"
-                            >
-                              {processing === request.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Approve
-                                </>
-                              )}
+                            <Button onClick={() => handleLeaveAction(request.id, 'Approved')} disabled={processing === request.id} className="bg-green-600 hover:bg-green-700 h-10 px-5">
+                              {processing === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4 mr-2" />Approve</>}
                             </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleLeaveAction(request.id, 'Rejected')}
-                              disabled={processing === request.id}
-                              className="h-10 px-5"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Reject
+                            <Button variant="destructive" onClick={() => handleLeaveAction(request.id, 'Rejected')} disabled={processing === request.id} className="h-10 px-5">
+                              <XCircle className="w-4 h-4 mr-2" />Reject
                             </Button>
                           </>
-                        ) : (
-                          getStatusBadge(request.status)
-                        )}
+                        ) : getStatusBadge(request.status)}
                       </div>
                     </div>
                   </div>
@@ -207,34 +242,44 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
     );
   }
 
-  // Overtime requests
-  const filteredOvertime = filterByStatus(overtimeRequests, activeTab);
-  const pendingCount = overtimeRequests.filter(o => o.status === 'Pending').length;
-  const approvedCount = overtimeRequests.filter(o => o.status === 'Approved').length;
-  const rejectedCount = overtimeRequests.filter(o => o.status === 'Rejected').length;
-
+  // Overtime view
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Overtime Requests</h1>
         <p className="text-muted-foreground mt-1">Review and manage additional hours requests</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={AlertCircle} value={pendingCount} label="Pending" color="text-amber-600" />
-        <StatCard icon={CheckCircle} value={approvedCount} label="Approved" color="text-green-600" />
-        <StatCard icon={XCircle} value={rejectedCount} label="Rejected" color="text-red-600" />
+        <StatCard icon={AlertCircle} value={otPendingCount} label="Pending" color="text-amber-600" />
+        <StatCard icon={CheckCircle} value={otApprovedCount} label="Approved" color="text-green-600" />
+        <StatCard icon={XCircle} value={otRejectedCount} label="Rejected" color="text-red-600" />
       </div>
+
+      {/* Filters */}
+      <Card className="bg-card border border-border">
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search by employee name..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+            </div>
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full lg:w-40" />
+              <span className="text-muted-foreground">—</span>
+              <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full lg:w-40" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="bg-card border border-border">
         <CardHeader className="pb-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
             <TabsList className="grid w-full sm:w-auto grid-cols-3 h-12">
               <TabsTrigger value="pending" className="gap-2 px-6">
-                Pending
-                {pendingCount > 0 && (
-                  <Badge variant="secondary" className="ml-1">{pendingCount}</Badge>
-                )}
+                Pending {otPendingCount > 0 && <Badge variant="secondary" className="ml-1">{otPendingCount}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-2 px-6">Approved</TabsTrigger>
               <TabsTrigger value="rejected" className="gap-2 px-6">Rejected</TabsTrigger>
@@ -245,8 +290,8 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
           {filteredOvertime.length === 0 ? (
             <div className="text-center py-16">
               <Clock className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-              <p className="text-lg font-medium text-foreground">No {activeTab} overtime requests</p>
-              <p className="text-muted-foreground">Check other tabs for more requests</p>
+              <p className="text-lg font-medium text-foreground">No matching overtime requests</p>
+              <p className="text-muted-foreground">Try adjusting your filters</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -255,9 +300,7 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-lg font-semibold text-primary">
-                          {request.userName?.charAt(0).toUpperCase()}
-                        </span>
+                        <span className="text-lg font-semibold text-primary">{request.userName?.charAt(0).toUpperCase()}</span>
                       </div>
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
@@ -278,37 +321,17 @@ export const RequestsManagement: React.FC<RequestsManagementProps> = ({
                         <p className="text-sm text-muted-foreground">{request.reason}</p>
                       </div>
                     </div>
-                    
                     <div className="flex items-center gap-3 ml-16 lg:ml-0">
                       {request.status === 'Pending' ? (
                         <>
-                          <Button
-                            onClick={() => handleOvertimeAction(request.id, 'Approved')}
-                            disabled={processing === request.id}
-                            className="bg-green-600 hover:bg-green-700 h-10 px-5"
-                          >
-                            {processing === request.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Approve
-                              </>
-                            )}
+                          <Button onClick={() => handleOvertimeAction(request.id, 'Approved')} disabled={processing === request.id} className="bg-green-600 hover:bg-green-700 h-10 px-5">
+                            {processing === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4 mr-2" />Approve</>}
                           </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => handleOvertimeAction(request.id, 'Rejected')}
-                            disabled={processing === request.id}
-                            className="h-10 px-5"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Reject
+                          <Button variant="destructive" onClick={() => handleOvertimeAction(request.id, 'Rejected')} disabled={processing === request.id} className="h-10 px-5">
+                            <XCircle className="w-4 h-4 mr-2" />Reject
                           </Button>
                         </>
-                      ) : (
-                        getStatusBadge(request.status)
-                      )}
+                      ) : getStatusBadge(request.status)}
                     </div>
                   </div>
                 </div>

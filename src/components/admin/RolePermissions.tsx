@@ -34,6 +34,10 @@ const PERMISSION_LABELS: Record<string, string> = {
   breaks: 'Break Schedules',
   rewards: 'Rewards (View)',
   rewards_management: 'Rewards Management',
+  projects: 'Project Management',
+  holidays: 'Official Holidays',
+  hours_adjustment: 'Hours Adjustment',
+  hours_overview: 'Employee Hours Overview',
   roles: 'Role Management',
   permissions: 'Permission Settings',
 };
