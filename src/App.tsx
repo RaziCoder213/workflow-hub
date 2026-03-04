@@ -14,6 +14,7 @@ import Rewards from '@/components/Rewards';
 import Authenticator from '@/components/Authenticator';
 import CheckIns from '@/components/CheckIns';
 import { Button } from '@/components/ui/button';
+import { usePermissions, NAV_PERMISSION_MAP, EMPLOYEE_NAV_PERMISSION_MAP } from '@/hooks/usePermissions';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -48,10 +49,10 @@ const App: React.FC = () => {
   const [overtimeRequests, setOvertimeRequests] = useState<OvertimeRequest[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const IDLE_LIMIT = 15 * 60; // 15 minutes
-  const REQUIRED_SECONDS = 8 * 60 * 60; // 8 hours
+  const IDLE_LIMIT = 15 * 60;
+  const REQUIRED_SECONDS = 8 * 60 * 60;
 
-  const isAdmin = user?.role === 'Admin' || user?.role === 'HR';
+  const { canView, hasAnyAdminAccess, loading: permissionsLoading } = usePermissions(user?.role);
 
   // Fetch break schedule for today
   const fetchBreakSchedule = useCallback(async () => {
@@ -65,7 +66,6 @@ const App: React.FC = () => {
     if (data) {
       setBreakSchedule(data as BreakSchedule);
     } else {
-      // Default 3-4 PM
       setBreakSchedule({ day_of_week: dayOfWeek, start_hour: 15, end_hour: 16 });
     }
   }, []);
@@ -180,17 +180,14 @@ const App: React.FC = () => {
     setCurrentView('dashboard');
   };
 
-  // Activity detection - reset idle timer
+  // Activity detection
   useEffect(() => {
     if (!currentSession) return;
-
     const resetIdle = () => setIdleSeconds(0);
-    
     window.addEventListener('mousemove', resetIdle);
     window.addEventListener('keydown', resetIdle);
     window.addEventListener('click', resetIdle);
     window.addEventListener('scroll', resetIdle);
-
     return () => {
       window.removeEventListener('mousemove', resetIdle);
       window.removeEventListener('keydown', resetIdle);
@@ -199,47 +196,26 @@ const App: React.FC = () => {
     };
   }, [currentSession]);
 
-  // Main timer - runs every second
+  // Main timer
   useEffect(() => {
     if (!user) return;
-
     const interval = setInterval(() => {
       const isBreak = checkBreakTime();
       setIsBreakTime(isBreak);
-
       if (currentSession) {
-        // Handle break time auto-checkout
-        if (isBreak) {
-          handleCheckOut('lunch-checkout');
-          return;
-        }
-
-        // Increment working seconds
+        if (isBreak) { handleCheckOut('lunch-checkout'); return; }
         setTodayTotalSeconds((prev) => {
           const newTotal = prev + 1;
-          
-          // Auto checkout at 8 hours
-          if (newTotal >= REQUIRED_SECONDS) {
-            handleCheckOut('system-checkout');
-          }
-          
+          if (newTotal >= REQUIRED_SECONDS) handleCheckOut('system-checkout');
           return newTotal;
         });
-
-        // Increment idle seconds
         setIdleSeconds((prev) => {
           const newIdle = prev + 1;
-          
-          // Auto checkout at 15 minutes idle
-          if (newIdle >= IDLE_LIMIT) {
-            handleCheckOut('idle-checkout');
-          }
-          
+          if (newIdle >= IDLE_LIMIT) handleCheckOut('idle-checkout');
           return newIdle;
         });
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [user, currentSession, checkBreakTime]);
 
@@ -263,20 +239,8 @@ const App: React.FC = () => {
     );
   }
 
-  // Navigation items
-  const employeeNav = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'checkins', label: 'Check-ins', icon: ClipboardCheck },
-    { id: 'attendance', label: 'Attendance', icon: Calendar },
-    { id: 'leaves', label: 'Leave Requests', icon: FileText },
-    { id: 'overtime', label: 'Additional Hours', icon: Clock },
-    { id: 'rewards', label: 'Rewards', icon: Gift },
-    { id: 'authenticator', label: 'Authenticator', icon: Shield },
-    { id: 'performance', label: 'Performance', icon: Star },
-    { id: 'profile', label: 'Profile', icon: UserIcon },
-  ];
-
-  const adminNav = [
+  // All possible admin nav items
+  const allAdminNav = [
     { id: 'command', label: 'Command Center', icon: LayoutDashboard },
     { id: 'employees', label: 'Employee Management', icon: Users },
     { id: 'leaves', label: 'Leave Approvals', icon: FileText },
@@ -291,13 +255,44 @@ const App: React.FC = () => {
     { id: 'permissions', label: 'Role Permissions', icon: Shield },
   ];
 
-  const navItems = isAdmin ? adminNav : employeeNav;
+  // All possible employee nav items
+  const allEmployeeNav = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'checkins', label: 'Check-ins', icon: ClipboardCheck },
+    { id: 'attendance', label: 'Attendance', icon: Calendar },
+    { id: 'leaves', label: 'Leave Requests', icon: FileText },
+    { id: 'overtime', label: 'Additional Hours', icon: Clock },
+    { id: 'rewards', label: 'Rewards', icon: Gift },
+    { id: 'authenticator', label: 'Authenticator', icon: Shield },
+    { id: 'performance', label: 'Performance', icon: Star },
+    { id: 'profile', label: 'Profile', icon: UserIcon },
+  ];
+
+  // Filter nav items based on permissions
+  const filterNavByPermissions = (items: typeof allAdminNav, permMap: Record<string, string>) => {
+    return items.filter(item => {
+      const permKey = permMap[item.id];
+      if (!permKey) return true; // No permission mapping = always show
+      return canView(permKey);
+    });
+  };
+
+  const isAdminView = hasAnyAdminAccess;
+  
+  const adminNav = filterNavByPermissions(allAdminNav, NAV_PERMISSION_MAP);
+  const employeeNav = filterNavByPermissions(allEmployeeNav, EMPLOYEE_NAV_PERMISSION_MAP);
+
+  const navItems = isAdminView ? adminNav : employeeNav;
+
+  // If current view not in allowed nav, redirect to first available
+  const allowedIds = navItems.map(n => n.id);
+  const effectiveView = allowedIds.includes(currentView) ? currentView : (allowedIds[0] || 'dashboard');
 
   const renderContent = () => {
-    if (isAdmin) {
+    if (isAdminView) {
       return (
         <Management
-          view={currentView}
+          view={effectiveView}
           currentUser={user}
           leaveRequests={leaveRequests}
           overtimeRequests={overtimeRequests}
@@ -307,7 +302,7 @@ const App: React.FC = () => {
       );
     }
 
-    switch (currentView) {
+    switch (effectiveView) {
       case 'dashboard':
         return (
           <Dashboard
@@ -324,22 +319,9 @@ const App: React.FC = () => {
       case 'attendance':
         return <AttendanceReport user={user} />;
       case 'leaves':
-        return (
-          <LeaveRequests
-            user={user}
-            requests={leaveRequests}
-            onRefresh={fetchAllData}
-          />
-        );
+        return <LeaveRequests user={user} requests={leaveRequests} onRefresh={fetchAllData} />;
       case 'overtime':
-        return (
-          <OvertimeRequests
-            user={user}
-            requests={overtimeRequests}
-            todayTotalSeconds={todayTotalSeconds}
-            onRefresh={fetchAllData}
-          />
-        );
+        return <OvertimeRequests user={user} requests={overtimeRequests} todayTotalSeconds={todayTotalSeconds} onRefresh={fetchAllData} />;
       case 'rewards':
         return <Rewards user={user} todayTotalSeconds={todayTotalSeconds} />;
       case 'authenticator':
@@ -437,7 +419,7 @@ const App: React.FC = () => {
               className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl
                 transition-all duration-200 text-left
-                ${currentView === item.id 
+                ${effectiveView === item.id 
                   ? 'bg-primary text-primary-foreground shadow-md' 
                   : 'hover:bg-muted text-foreground'
                 }
